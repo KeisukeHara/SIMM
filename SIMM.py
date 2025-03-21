@@ -65,21 +65,27 @@ def calculate_simm(crif_df):
 
 st.title("ISDA SIMM 計算アプリ")
 
-if st.button("サンプルCRIFデータを生成"):
-    crif_df = generate_crif_sample()
-    crif_df.to_csv("crif_sample.csv", index=False)
-    st.success("100件のサンプルデータを生成しました！")
-    st.write("### サンプルCRIFデータ")
-    st.dataframe(crif_df)
+if "crif_df" not in st.session_state:
+    st.session_state["crif_df"] = pd.DataFrame()
+
+sample_generated = st.button("サンプルCRIFデータを生成")
+
+if sample_generated:
+    st.session_state["crif_df"] = generate_crif_sample()
+    st.success("100件のサンプルデータを生成し、自動的に読み込みました！")
+
+if not st.session_state["crif_df"].empty:
+    st.write("### CRIFデータ（サンプルまたはアップロード）")
+    st.dataframe(st.session_state["crif_df"])
 
 uploaded_file = st.file_uploader("CRIFファイルをアップロードしてください", type=["csv"])
 
 if uploaded_file:
-    crif_df = pd.read_csv(uploaded_file)
-    st.write("### CRIFデータ")
-    st.dataframe(crif_df)
-    
-    if st.button("SIMMを計算"):
-        simm_results = calculate_simm(crif_df)
-        st.write("### SIMM 計算結果")
-        st.dataframe(simm_results)
+    st.session_state["crif_df"] = pd.read_csv(uploaded_file)
+    st.write("### CRIFデータ（アップロード後）")
+    st.dataframe(st.session_state["crif_df"])
+
+if not st.session_state["crif_df"].empty and st.button("SIMMを計算"):
+    simm_results = calculate_simm(st.session_state["crif_df"])
+    st.write("### SIMM 計算結果")
+    st.dataframe(simm_results)
